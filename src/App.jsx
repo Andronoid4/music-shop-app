@@ -1,121 +1,284 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { useState, useEffect } from 'react'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [activeTab, setActiveTab] = useState('records')
+  const [records, setRecords] = useState([])
+  const [ensembles, setEnsembles] = useState([])
+  const [topSellers, setTopSellers] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [message, setMessage] = useState(null)
+
+  const [newEnsemble, setNewEnsemble] = useState({
+    name: '',
+    type: '',
+    founded_year: '',
+    leader_id: ''
+  })
+
+  const [newRecord, setNewRecord] = useState({
+    label_number: '',
+    title: '',
+    company_id: '',
+    release_date: '',
+    wholesale_price: '',
+    retail_price: '',
+    stock_quantity: ''
+  })
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      setLoading(true)
+      setRecords([
+        { id: 1, label_number: 'EMI-001', title: 'Лучшие произведения классики', retail_price: 750.00, sold_current_year: 200, stock_quantity: 50 },
+        { id: 2, label_number: 'MEL-002', title: 'Джазовые вечера', retail_price: 600.00, sold_current_year: 350, stock_quantity: 30 }
+      ])
+      setEnsembles([
+        { id: 1, name: 'Московский камерный оркестр', type: 'оркестр' },
+        { id: 2, name: 'Джаз-квартет', type: 'квартет' }
+      ])
+      setTopSellers([
+        { title: 'Джазовые вечера', sold_count: 350 },
+        { title: 'Лучшие произведения классики', sold_count: 200 }
+      ])
+      setError(null)
+    } catch (err) {
+      setError('Ошибка загрузки данных: ' + err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddEnsemble = async (e) => {
+    e.preventDefault()
+    try {
+      setMessage('Ансамбль "' + newEnsemble.name + '" успешно добавлен!')
+      setNewEnsemble({ name: '', type: '', founded_year: '', leader_id: '' })
+      setTimeout(() => setMessage(null), 3000)
+    } catch (err) {
+      setError('Ошибка добавления ансамбля: ' + err.message)
+    }
+  }
+
+  const handleAddRecord = async (e) => {
+    e.preventDefault()
+    try {
+      setMessage('Пластинка "' + newRecord.title + '" успешно добавлена!')
+      setNewRecord({ 
+        label_number: '', title: '', company_id: '', release_date: '', 
+        wholesale_price: '', retail_price: '', stock_quantity: '' 
+      })
+      setTimeout(() => setMessage(null), 3000)
+    } catch (err) {
+      setError('Ошибка добавления пластинки: ' + err.message)
+    }
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+    <div className="app">
+      <header className="header">
+        <h1>🎵 Музыкальный магазин</h1>
+        <p>База данных музыкального магазина</p>
+      </header>
+
+      {error && <div className="alert alert-error">{error}</div>}
+      {message && <div className="alert alert-success">{message}</div>}
+
+      <nav className="tabs">
+        <button 
+          className={activeTab === 'records' ? 'active' : ''} 
+          onClick={() => setActiveTab('records')}
         >
-          Count is {count}
+          Пластинки
         </button>
-      </section>
+        <button 
+          className={activeTab === 'ensembles' ? 'active' : ''} 
+          onClick={() => setActiveTab('ensembles')}
+        >
+          Ансамбли
+        </button>
+        <button 
+          className={activeTab === 'top' ? 'active' : ''} 
+          onClick={() => setActiveTab('top')}
+        >
+          Лидеры продаж
+        </button>
+      </nav>
 
-      <div className="ticks"></div>
+      <main className="content">
+        {loading && <div className="loading">Загрузка...</div>}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+        {activeTab === 'records' && (
+          <div className="section">
+            <h2>📀 Пластинки</h2>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Номер наклейки</th>
+                  <th>Название</th>
+                  <th>Цена (розница)</th>
+                  <th>Продано в этом году</th>
+                  <th>Остаток</th>
+                </tr>
+              </thead>
+              <tbody>
+                {records.map(record => (
+                  <tr key={record.id}>
+                    <td>{record.label_number}</td>
+                    <td>{record.title}</td>
+                    <td>{record.retail_price} ₽</td>
+                    <td>{record.sold_current_year}</td>
+                    <td>{record.stock_quantity}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+            <div className="form-section">
+              <h3>Добавить новую пластинку</h3>
+              <form onSubmit={handleAddRecord} className="form">
+                <input
+                  type="text"
+                  placeholder="Номер наклейки"
+                  value={newRecord.label_number}
+                  onChange={(e) => setNewRecord({...newRecord, label_number: e.target.value})}
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Название"
+                  value={newRecord.title}
+                  onChange={(e) => setNewRecord({...newRecord, title: e.target.value})}
+                  required
+                />
+                <input
+                  type="number"
+                  placeholder="ID компании"
+                  value={newRecord.company_id}
+                  onChange={(e) => setNewRecord({...newRecord, company_id: e.target.value})}
+                />
+                <input
+                  type="date"
+                  placeholder="Дата выпуска"
+                  value={newRecord.release_date}
+                  onChange={(e) => setNewRecord({...newRecord, release_date: e.target.value})}
+                />
+                <input
+                  type="number"
+                  placeholder="Оптовая цена"
+                  value={newRecord.wholesale_price}
+                  onChange={(e) => setNewRecord({...newRecord, wholesale_price: e.target.value})}
+                />
+                <input
+                  type="number"
+                  placeholder="Розничная цена"
+                  value={newRecord.retail_price}
+                  onChange={(e) => setNewRecord({...newRecord, retail_price: e.target.value})}
+                  required
+                />
+                <input
+                  type="number"
+                  placeholder="Количество"
+                  value={newRecord.stock_quantity}
+                  onChange={(e) => setNewRecord({...newRecord, stock_quantity: e.target.value})}
+                />
+                <button type="submit" className="btn">Добавить</button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'ensembles' && (
+          <div className="section">
+            <h2>🎻 Ансамбли</h2>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Название</th>
+                  <th>Тип</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ensembles.map(ensemble => (
+                  <tr key={ensemble.id}>
+                    <td>{ensemble.id}</td>
+                    <td>{ensemble.name}</td>
+                    <td>{ensemble.type}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            <div className="form-section">
+              <h3>Добавить новый ансамбль</h3>
+              <form onSubmit={handleAddEnsemble} className="form">
+                <input
+                  type="text"
+                  placeholder="Название ансамбля"
+                  value={newEnsemble.name}
+                  onChange={(e) => setNewEnsemble({...newEnsemble, name: e.target.value})}
+                  required
+                />
+                <input
+                  type="text"
+                  placeholder="Тип (оркестр, квартет и т.д.)"
+                  value={newEnsemble.type}
+                  onChange={(e) => setNewEnsemble({...newEnsemble, type: e.target.value})}
+                  required
+                />
+                <input
+                  type="number"
+                  placeholder="Год основания"
+                  value={newEnsemble.founded_year}
+                  onChange={(e) => setNewEnsemble({...newEnsemble, founded_year: e.target.value})}
+                />
+                <input
+                  type="number"
+                  placeholder="ID руководителя"
+                  value={newEnsemble.leader_id}
+                  onChange={(e) => setNewEnsemble({...newEnsemble, leader_id: e.target.value})}
+                />
+                <button type="submit" className="btn">Добавить</button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'top' && (
+          <div className="section">
+            <h2>🏆 Лидеры продаж текущего года</h2>
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Место</th>
+                  <th>Название пластинки</th>
+                  <th>Продано экземпляров</th>
+                </tr>
+              </thead>
+              <tbody>
+                {topSellers.map((seller, index) => (
+                  <tr key={index}>
+                    <td>{index + 1}</td>
+                    <td>{seller.title}</td>
+                    <td>{seller.sold_count}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </main>
+
+      <footer className="footer">
+        <p>Курсовой проект | База данных музыкального магазина</p>
+      </footer>
+    </div>
   )
 }
 
