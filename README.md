@@ -1,16 +1,119 @@
-# React + Vite
+# 🎵 База данных музыкального магазина
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Курсовой проект - система управления базой данных музыкального магазина.
 
-Currently, two official plugins are available:
+## 📋 Описание
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Проект реализует базу данных для музыкального магазина, содержащую информацию о:
+- Музыкантах (исполнители, композиторы, дирижеры, руководители)
+- Ансамблях (оркестры, квартеты, квинтеты и т.д.)
+- Музыкальных произведениях
+- Пластинках/компакт-дисках
+- Компаниях-производителях
 
-## React Compiler
+## 🚀 Быстрый старт
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Требования
+- Node.js 18+ 
+- PostgreSQL 14+
 
-## Expanding the ESLint configuration
+### Запуск фронтенда
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+# Установка зависимостей
+npm install
+
+# Запуск сервера разработки
+npm run dev
+```
+
+После запуска откройте в браузере: **http://localhost:5173**
+
+### Настройка базы данных
+
+```bash
+# Подключитесь к PostgreSQL
+psql -U postgres -h localhost
+
+# Создайте базу данных
+CREATE DATABASE music_shop;
+
+# Подключитесь к новой базе
+\c music_shop
+
+# Выполните SQL скрипт
+\i database.sql
+```
+
+Или через pgAdmin/DBeaver - просто выполните содержимое файла `database.sql`
+
+## 📁 Структура проекта
+
+```
+/workspace
+├── database.sql          # SQL скрипт БД (таблицы, триггеры, процедуры)
+├── vite.config.js        # Конфигурация Vite
+├── package.json          # Зависимости проекта
+├── src/
+│   ├── App.jsx           # Основной компонент React
+│   ├── App.css           # Стили приложения
+│   ├── main.jsx          # Точка входа
+│   └── index.css         # Глобальные стили
+└── README.md             # Документация
+```
+
+## 🗄️ База данных
+
+### Таблицы
+- `musicians` - музыканты
+- `instruments` - инструменты
+- `musician_instruments` - связь музыкантов и инструментов
+- `ensembles` - ансамбли
+- `ensemble_members` - состав ансамблей
+- `compositions` - музыкальные произведения
+- `performances` - исполнения
+- `record_companies` - компании-производители
+- `records` - пластинки/CD
+- `record_performances` - связь пластинок и исполнений
+
+### Функции и процедуры
+
+1. **get_ensemble_composition_count(ensemble_id)** - количество произведений ансамбля
+2. **get_ensemble_records(ensemble_id)** - все пластинки ансамбля
+3. **get_top_sellers()** - лидеры продаж текущего года
+4. **add_ensemble()** - добавление нового ансамбля
+5. **add_musician_to_ensemble()** - добавление музыканта в ансамбль
+6. **update_record_data()** - обновление данных о пластинке
+7. **add_new_record()** - добавление новой пластинки
+
+### Триггеры
+- **trg_update_sales** - автоматическое обновление счетчика продаж
+- **trg_check_price** - проверка что розничная цена >= оптовой
+
+## 🌐 Frontend
+
+Фронтенд предоставляет интерфейс для:
+- Просмотра списка пластинок
+- Просмотра списка ансамблей
+- Отображения лидеров продаж
+- Добавления новых пластинок
+- Добавления новых ансамблей
+
+## 🔧 Команды npm
+
+```bash
+npm run dev      # Запуск сервера разработки
+npm run build    # Сборка для продакшена
+npm run preview  # Предпросмотр сборки
+npm run lint     # Проверка кода
+```
+
+## 📝 Примечания
+
+- Порт фронтенда: **5173**
+- Порт PostgreSQL: **5432**
+- Проект работает локально без необходимости в backend (демо-режим с моковыми данными)
+
+## 👨‍💻 Автор
+
+Курсовой проект по базам данных
