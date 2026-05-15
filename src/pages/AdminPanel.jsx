@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Users, BanCheck } from 'lucide-react';
+import { Users, ShieldAlert } from 'lucide-react';
 
 const mockUsers = [
   { id: 1, name: 'Иван', role: 'user', banned: false },
@@ -22,7 +22,7 @@ export default function AdminPanel() {
   if (!canBan()) {
     return (
       <div className="p-6 text-center text-red-600 bg-red-50 rounded-lg">
-        <BanCheck className="w-12 h-12 mx-auto mb-2" />
+        <ShieldAlert className="w-12 h-12 mx-auto mb-2" />
         <p>Доступ запрещен. Только владелец может управлять пользователями.</p>
       </div>
     );
