@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Plus, Music, Edit, Trash2 } from 'lucide-react';
 
 const API = 'http://localhost:3001/api';
 
@@ -40,7 +41,30 @@ export default function RecordsAdmin() {
     }
   };
 
+  const handleEdit = (record) => {
+    setEditing(record);
+    setForm({
+      label_number: record.label_number || '',
+      title: record.title || '',
+      company_id: record.company_id || '',
+      release_date: record.release_date || '',
+      wholesale_price: record.wholesale_price || '',
+      retail_price: record.retail_price || '',
+      stock_quantity: record.stock_quantity || ''
+    });
+    setShowForm(true);
+  };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setForm({ ...form, image: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -63,48 +87,48 @@ export default function RecordsAdmin() {
               <input
                 type="text"
                 placeholder="Название"
-                value={formData.title}
-                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+                value={form.title}
+                onChange={(e) => setForm({ ...form, title: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 required
               />
               <input
                 type="text"
                 placeholder="Ансамбль"
-                value={formData.ensemble}
-                onChange={(e) => setFormData({ ...formData, ensemble: e.target.value })}
+                value={form.company_id}
+                onChange={(e) => setForm({ ...form, company_id: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 required
               />
               <input
                 type="number"
                 placeholder="Розничная цена"
-                value={formData.retail_price}
-                onChange={(e) => setFormData({ ...formData, retail_price: e.target.value })}
+                value={form.retail_price}
+                onChange={(e) => setForm({ ...form, retail_price: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 required
               />
               <input
                 type="number"
                 placeholder="Оптовая цена"
-                value={formData.wholesale_price}
-                onChange={(e) => setFormData({ ...formData, wholesale_price: e.target.value })}
+                value={form.wholesale_price}
+                onChange={(e) => setForm({ ...form, wholesale_price: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 required
               />
               <input
                 type="number"
                 placeholder="Количество на складе"
-                value={formData.stock}
-                onChange={(e) => setFormData({ ...formData, stock: e.target.value })}
+                value={form.stock_quantity}
+                onChange={(e) => setForm({ ...form, stock_quantity: e.target.value })}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2"
                 required
               />
               <div>
                 <label className="block text-sm text-gray-600 mb-1">Обложка альбома</label>
                 <input type="file" accept="image/*" onChange={handleImageUpload} className="w-full" />
-                {formData.image && (
-                  <img src={formData.image} alt="Preview" className="mt-2 w-20 h-20 object-cover rounded" />
+                {form.image && (
+                  <img src={form.image} alt="Preview" className="mt-2 w-20 h-20 object-cover rounded" />
                 )}
               </div>
               <div className="flex gap-2">
@@ -126,7 +150,7 @@ export default function RecordsAdmin() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {records.map((record) => (
-          <div key={record.id} className="bg-white rounded-lg shadow overflow-hidden">
+          <div key={record.record_id} className="bg-white rounded-lg shadow overflow-hidden">
             <div className="h-48 bg-gray-200 flex items-center justify-center">
               {record.image ? (
                 <img src={record.image} alt={record.title} className="w-full h-full object-cover" />
@@ -136,7 +160,7 @@ export default function RecordsAdmin() {
             </div>
             <div className="p-4">
               <h3 className="font-bold text-lg mb-1">{record.title}</h3>
-              <p className="text-gray-600 text-sm mb-2">{record.ensemble}</p>
+              <p className="text-gray-600 text-sm mb-2">{record.company_id}</p>
               <p className="text-blue-600 font-semibold mb-2">{record.retail_price} ₽</p>
               <div className="flex gap-2">
                 <button
@@ -147,7 +171,7 @@ export default function RecordsAdmin() {
                   Изменить
                 </button>
                 <button
-                  onClick={() => handleDelete(record.id)}
+                  onClick={() => handleDelete(record.record_id)}
                   className="flex-1 bg-red-500 hover:bg-red-600 text-white py-1 rounded text-sm flex items-center justify-center gap-1"
                 >
                   <Trash2 className="w-4 h-4" />
