@@ -1,19 +1,26 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
-import { ShoppingCart, Music, Plus } from 'lucide-react';
-
-const mockRecords = [
-  { id: 1, title: 'Symphony No. 5', ensemble: 'Berlin Philharmonic', retail_price: 1500, stock: 50, image: null },
-  { id: 2, title: 'Jazz Classics', ensemble: 'Miles Davis Quartet', retail_price: 1200, stock: 35, image: null },
-  { id: 3, title: 'Rock Legends', ensemble: 'The Beatles', retail_price: 1800, stock: 20, image: null },
-  { id: 4, title: 'Classical Piano', ensemble: 'Vienna Philharmonic', retail_price: 1400, stock: 40, image: null },
-];
+import { Music, Plus } from 'lucide-react';
 
 export default function Catalog() {
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
   const { canBuy, user } = useAuth();
   const { addToCart } = useCart();
-  const [records] = useState(mockRecords);
+
+  useEffect(() => {
+    fetch('http://localhost:3001/api/records')
+      .then(res => res.json())
+      .then(data => {
+        setRecords(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load records:', err);
+        setLoading(false);
+      });
+  }, []);
 
   const handleAddToCart = (record) => {
     if (!canBuy()) {
@@ -22,6 +29,8 @@ export default function Catalog() {
     }
     addToCart(record);
   };
+
+  if (loading) return <div className="p-6 text-center">Загрузка...</div>;
 
   return (
     <div className="max-w-6xl mx-auto p-6">
@@ -38,17 +47,13 @@ export default function Catalog() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {records.map((record) => (
-          <div key={record.id} className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow">
+          <div key={record.record_id} className="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition-shadow">
             <div className="h-48 bg-gray-200 flex items-center justify-center">
-              {record.image ? (
-                <img src={record.image} alt={record.title} className="w-full h-full object-cover" />
-              ) : (
-                <Music className="w-16 h-16 text-gray-400" />
-              )}
+              <Music className="w-16 h-16 text-gray-400" />
             </div>
             <div className="p-4">
               <h3 className="font-bold text-lg mb-1 truncate">{record.title}</h3>
-              <p className="text-gray-600 text-sm mb-2 truncate">{record.ensemble}</p>
+              <p className="text-gray-600 text-sm mb-2 truncate">{record.company_name || 'Неизвестный лейбл'}</p>
               <div className="flex justify-between items-center">
                 <p className="text-blue-600 font-semibold">{record.retail_price} ₽</p>
                 <button
@@ -64,7 +69,7 @@ export default function Catalog() {
                   В корзину
                 </button>
               </div>
-              <p className="text-xs text-gray-500 mt-2">В наличии: {record.stock} шт.</p>
+              <p className="text-xs text-gray-500 mt-2">В наличии: {record.stock_quantity} шт.</p>
             </div>
           </div>
         ))}

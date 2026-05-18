@@ -6,18 +6,22 @@ export default function Cart() {
   const { cart, removeFromCart, updateQuantity, clearCart, total } = useCart();
   const { canBuy, user } = useAuth();
 
-  const handleCheckout = () => {
-    if (!canBuy()) {
-      alert('Только зарегистрированные пользователи могут совершать покупки');
-      return;
-    }
-    if (cart.length === 0) {
-      alert('Корзина пуста');
-      return;
-    }
-    alert(`Заказ оформлен на сумму ${total} ₽!`);
-    clearCart();
-  };
+  const handleCheckout = async () => {
+  if (!canBuy()) {
+    alert('Только зарегистрированные пользователи могут совершать покупки');
+    return;
+  }
+  if (cart.length === 0) {
+    alert('Корзина пуста');
+    return;
+  }
+  try {
+    await checkout();
+    alert('Заказ оформлен успешно!');
+  } catch (err) {
+    alert('Ошибка при оформлении заказа: ' + err.message);
+  }
+};
 
   if (!user) {
     return (

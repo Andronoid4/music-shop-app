@@ -87,6 +87,16 @@ CREATE TABLE record_performances (
     PRIMARY KEY (record_id, performance_id)
 );
 
+-- Таблица пользователей для аутентификации
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    username VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role VARCHAR(20) DEFAULT 'user',
+    is_banned BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Триггеры для каскадных изменений
 
 -- Триггер для автоматического удаления записей в musician_instruments при удалении музыканта

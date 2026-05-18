@@ -1,64 +1,46 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Plus, Edit, Trash2, Music } from 'lucide-react';
 
-const mockRecords = [
-  { id: 1, title: 'Symphony No. 5', ensemble: 'Berlin Philharmonic', retail_price: 1500, wholesale_price: 1000, stock: 50, sold_current: 30, image: null },
-  { id: 2, title: 'Jazz Classics', ensemble: 'Miles Davis Quartet', retail_price: 1200, wholesale_price: 800, stock: 35, sold_current: 45, image: null },
-];
+const API = 'http://localhost:3001/api';
 
 export default function RecordsAdmin() {
-  const { canEdit } = useAuth();
-  const [records, setRecords] = useState(mockRecords);
+  const { token, canEdit } = useAuth();
+  const [records, setRecords] = useState([]);
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [formData, setFormData] = useState({
-    title: '', ensemble: '', retail_price: '', wholesale_price: '', stock: '', image: null,
-  });
+  const [form, setForm] = useState({ label_number: '', title: '', company_id: '', release_date: '', wholesale_price: '', retail_price: '', stock_quantity: '' });
 
-  if (!canEdit()) {
-    return (
-      <div className="p-6 text-center text-red-600 bg-red-50 rounded-lg">
-        <Music className="w-12 h-12 mx-auto mb-2" />
-        <p>Доступ запрещен. Только администратор и владелец могут управлять товарами.</p>
-      </div>
-    );
-  }
+  const loadRecords = async () => {
+    const res = await fetch(`${API}/records`);
+    const data = await res.json();
+    setRecords(data);
+  };
 
-  const handleSubmit = (e) => {
+  useEffect(() => { loadRecords(); }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editing) {
-      setRecords((prev) =>
-        prev.map((r) => (r.id === editing.id ? { ...r, ...formData } : r))
-      );
-    } else {
-      setRecords((prev) => [...prev, { ...formData, id: Date.now(), sold_current: 0 }]);
-    }
+    const method = editing ? 'PUT' : 'POST';
+    const url = editing ? `${API}/records/${editing.record_id}` : `${API}/records`;
+    await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify(form)
+    });
+    loadRecords();
     setShowForm(false);
     setEditing(null);
-    setFormData({ title: '', ensemble: '', retail_price: '', wholesale_price: '', stock: '', image: null });
+    setForm({ label_number: '', title: '', company_id: '', release_date: '', wholesale_price: '', retail_price: '', stock_quantity: '' });
   };
 
-  const handleEdit = (record) => {
-    setEditing(record);
-    setFormData(record);
-    setShowForm(true);
-  };
-
-  const handleDelete = (id) => {
-    setRecords((prev) => prev.filter((r) => r.id !== id));
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData((prev) => ({ ...prev, image: reader.result }));
-      };
-      reader.readAsDataURL(file);
+  const handleDelete = async (id) => {
+    if (confirm('Удалить?')) {
+      await fetch(`${API}/records/${id}`, { method: 'DELETE', headers: { Authorization: `Bearer ${token}` } });
+      loadRecords();
     }
   };
+
+
 
   return (
     <div className="max-w-6xl mx-auto p-6">

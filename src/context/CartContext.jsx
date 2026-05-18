@@ -1,19 +1,22 @@
 import { createContext, useContext, useState } from 'react';
+import { useAuth } from './AuthContext';
 
 const CartContext = createContext(null);
+const API = 'http://localhost:3001/api';
 
 export function CartProvider({ children }) {
   const [cart, setCart] = useState([]);
+  const { token, user } = useAuth();
 
   const addToCart = (record) => {
     setCart((prev) => {
-      const existing = prev.find((item) => item.id === record.id);
+      const existing = prev.find((item) => item.id === record.record_id);
       if (existing) {
         return prev.map((item) =>
-          item.id === record.id ? { ...item, quantity: item.quantity + 1 } : item
+          item.id === record.record_id ? { ...item, quantity: item.quantity + 1 } : item
         );
       }
-      return [...prev, { ...record, quantity: 1 }];
+      return [...prev, { ...record, id: record.record_id, quantity: 1 }];
     });
   };
 
@@ -31,17 +34,29 @@ export function CartProvider({ children }) {
     );
   };
 
-  const clearCart = () => {
-    setCart([]);
-  };
+  const clearCart = () => setCart([]);
 
   const total = cart.reduce((sum, item) => sum + item.retail_price * item.quantity, 0);
   const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
+  const checkout = async () => {
+    if (!user || user.isBanned) throw new Error('Unauthorized or banned');
+    const orderItems = cart.map(item => ({ record_id: item.id, quantity: item.quantity }));
+    const res = await fetch(`${API}/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ userId: user.id, items: orderItems })
+    });
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Order failed');
+    }
+    clearCart();
+    return await res.json();
+  };
+
   return (
-    <CartContext.Provider
-      value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, total, itemCount }}
-    >
+    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, clearCart, total, itemCount, checkout }}>
       {children}
     </CartContext.Provider>
   );

@@ -1,32 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Users, ShieldAlert } from 'lucide-react';
-
-const mockUsers = [
-  { id: 1, name: 'Иван', role: 'user', banned: false },
-  { id: 2, name: 'Петр', role: 'user', banned: false },
-  { id: 3, name: 'Анна', role: 'user', banned: false },
-];
 
 export default function AdminPanel() {
-  const { canBan } = useAuth();
-  const [users, setUsers] = useState(mockUsers);
+  const { user, token, canBan, banUser } = useAuth();
+  const [users, setUsers] = useState([]);
 
-  const toggleBan = (id) => {
-    if (!canBan()) return;
-    setUsers((prev) =>
-      prev.map((u) => (u.id === id ? { ...u, banned: !u.banned } : u))
-    );
+  useEffect(() => {
+    if (canBan()) {
+      fetch('http://localhost:3001/api/auth/users', { headers: { Authorization: `Bearer ${token}` } })
+        .then(res => res.json())
+        .then(setUsers);
+    }
+  }, [canBan, token]);
+
+  const handleBan = async (userId, currentBan) => {
+    await banUser(userId, !currentBan);
+    // обновить список
+    const updated = await fetch('http://localhost:3001/api/auth/users', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
+    setUsers(updated);
   };
-
-  if (!canBan()) {
-    return (
-      <div className="p-6 text-center text-red-600 bg-red-50 rounded-lg">
-        <ShieldAlert className="w-12 h-12 mx-auto mb-2" />
-        <p>Доступ запрещен. Только владелец может управлять пользователями.</p>
-      </div>
-    );
-  }
 
   return (
     <div className="max-w-4xl mx-auto p-6">

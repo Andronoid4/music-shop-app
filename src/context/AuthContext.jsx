@@ -1,67 +1,96 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 
 const AuthContext = createContext(null);
+const API = 'http://localhost:3001/api/auth';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(localStorage.getItem('token'));
 
   useEffect(() => {
-    const storedUser = localStorage.getItem('music_shop_user');
-    if (storedUser) {
+    const storedToken = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+    if (storedToken && storedUser) {
+      setToken(storedToken);
       setUser(JSON.parse(storedUser));
     }
     setLoading(false);
   }, []);
 
-  // Функция входа: принимает name и role (для демо)
-  const login = (name, role) => {
-    // Проверка на бан (для пользователя с ролью user)
-    if (role === 'user' && name === 'banned') {
-      return { success: false, message: 'Ваш аккаунт заблокирован.' };
+  const login = async (username, password) => {
+    try {
+      const res = await fetch(`${API}/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      setToken(data.token);
+      setUser(data.user);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: err.message };
     }
-    const newUser = {
-      id: Date.now(),
-      name: name || (role === 'owner' ? 'Владелец' : role === 'admin' ? 'Администратор' : 'Пользователь'),
-      email: `${role}@shop.com`,
-      role: role,
-      isBanned: false
-    };
-    setUser(newUser);
-    localStorage.setItem('music_shop_user', JSON.stringify(newUser));
-    return { success: true };
+  };
+
+  const register = async (username, password, role = 'user') => {
+    try {
+      const res = await fetch(`${API}/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password, role })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      // после регистрации сразу логиним
+      return await login(username, password);
+    } catch (err) {
+      return { success: false, message: err.message };
+    }
   };
 
   const logout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setToken(null);
     setUser(null);
-    localStorage.removeItem('music_shop_user');
   };
 
-  // Проверка прав
-  const canBuy = () => {
-    return user && user.role !== 'guest';
+  const banUser = async (userId, ban) => {
+    if (user?.role !== 'owner') return;
+    try {
+      const res = await fetch(`${API}/users/${userId}/ban`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ ban })
+      });
+      if (!res.ok) throw new Error('Failed to ban user');
+    } catch (err) { console.error(err); }
   };
 
-  const canEdit = () => {
-    return user && (user.role === 'admin' || user.role === 'owner');
+  const getUsers = async () => {
+    if (user?.role !== 'owner') return [];
+    try {
+      const res = await fetch(`${API}/users`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!res.ok) return [];
+      return await res.json();
+    } catch { return []; }
   };
 
-  const canBan = () => {
-    return user && user.role === 'owner';
-  };
-
-  const banUser = (userId) => {
-    if (!canBan()) return;
-    // В реальном приложении был бы API-запрос
-    alert(`Пользователь с ID ${userId} заблокирован (симуляция)`);
-  };
+  const canBuy = () => user && !user.isBanned && user.role !== 'guest';
+  const canEdit = () => user && (user.role === 'admin' || user.role === 'owner');
+  const canBan = () => user && user.role === 'owner';
 
   if (loading) {
     return <div className="flex items-center justify-center min-h-screen">Загрузка...</div>;
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, banUser, canBuy, canEdit, canBan, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, login, register, logout, banUser, getUsers, canBuy, canEdit, canBan, token }}>
       {children}
     </AuthContext.Provider>
   );

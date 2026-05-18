@@ -1,11 +1,16 @@
 const express = require('express');
-const router = express.Router();
+const cors = require('cors');
+require('dotenv').config();
 
-// Тестовый эндпоинт для проверки связи
-router.get('/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Backend is running' });
-});
+const recordRoutes = require('./routes/recordRoutes');
+const authRoutes = require('./routes/authRoutes');
 
-// Дальше здесь будем добавлять роуты для ансамблей, пластинок и т.д.
+const app = express();
+app.use(cors());
+app.use(express.json());
 
-module.exports = router;
+app.use('/api', recordRoutes);
+app.use('/api/auth', authRoutes);
+console.log('Auth routes registered:', typeof authRoutes);
+const PORT = process.env.PORT || 3001;
+app.listen(PORT, () => console.log(`Backend running on http://localhost:${PORT}`));
