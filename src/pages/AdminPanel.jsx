@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Users } from 'lucide-react';
 
 export default function AdminPanel() {
   const { user, token, canBan, banUser } = useAuth();
@@ -18,6 +19,10 @@ export default function AdminPanel() {
     // обновить список
     const updated = await fetch('http://localhost:3001/api/auth/users', { headers: { Authorization: `Bearer ${token}` } }).then(r => r.json());
     setUsers(updated);
+  };
+
+  const toggleBan = (userId, currentBan) => {
+    handleBan(userId, currentBan);
   };
 
   return (
@@ -39,31 +44,31 @@ export default function AdminPanel() {
           </thead>
           <tbody className="divide-y">
             {users.map((user) => (
-              <tr key={user.id} className={user.banned ? 'bg-red-50' : ''}>
-                <td className="px-6 py-4 text-sm text-gray-900">{user.id}</td>
-                <td className="px-6 py-4 text-sm text-gray-900">{user.name}</td>
+              <tr key={user.user_id} className={user.is_banned ? 'bg-red-50' : ''}>
+                <td className="px-6 py-4 text-sm text-gray-900">{user.user_id}</td>
+                <td className="px-6 py-4 text-sm text-gray-900">{user.username}</td>
                 <td className="px-6 py-4 text-sm text-gray-900">{user.role}</td>
                 <td className="px-6 py-4">
                   <span
                     className={`px-2 py-1 text-xs rounded-full ${
-                      user.banned
+                      user.is_banned
                         ? 'bg-red-100 text-red-800'
                         : 'bg-green-100 text-green-800'
                     }`}
                   >
-                    {user.banned ? 'Заблокирован' : 'Активен'}
+                    {user.is_banned ? 'Заблокирован' : 'Активен'}
                   </span>
                 </td>
                 <td className="px-6 py-4">
                   <button
-                    onClick={() => toggleBan(user.id)}
+                    onClick={() => toggleBan(user.user_id, user.is_banned)}
                     className={`px-3 py-1 text-sm rounded ${
-                      user.banned
+                      user.is_banned
                         ? 'bg-green-600 hover:bg-green-700 text-white'
                         : 'bg-red-600 hover:bg-red-700 text-white'
                     }`}
                   >
-                    {user.banned ? 'Разблокировать' : 'Заблокировать'}
+                    {user.is_banned ? 'Разблокировать' : 'Заблокировать'}
                   </button>
                 </td>
               </tr>
