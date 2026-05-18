@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { Users } from 'lucide-react';
 
 export default function AdminPanel() {
   const { user, token, canBan, banUser } = useAuth();
@@ -20,6 +21,9 @@ export default function AdminPanel() {
     setUsers(updated);
   };
 
+  const toggleBan = (userId, currentBan) => {
+    handleBan(userId, currentBan);
+  };
   return (
     <div className="max-w-4xl mx-auto p-6">
       <h1 className="text-2xl font-bold mb-6 flex items-center gap-2">
